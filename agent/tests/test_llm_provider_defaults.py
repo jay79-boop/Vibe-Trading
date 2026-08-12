@@ -18,7 +18,7 @@ EXPECTED_PROVIDER_DEFAULTS = {
     "requesty": "openai/gpt-4o-mini",
     "openai": "gpt-5.5",
     "anthropic": "claude-sonnet-4-6",
-    "openai-codex": "openai-codex/gpt-5.4",
+    "openai-codex": "openai-codex/gpt-5.4-mini",
     "deepseek": "deepseek-v4-pro",
     "siliconflow-cn": "deepseek-ai/DeepSeek-V3.1-Terminus",
     "siliconflow-global": "deepseek-ai/DeepSeek-V3.1-Terminus",
@@ -73,10 +73,10 @@ def test_interactive_onboard_openai_defaults_to_available_model() -> None:
 def test_interactive_onboard_codex_defaults_to_supported_model() -> None:
     provider = next(provider for provider in ONBOARD_PROVIDERS if provider.key == "openai-codex")
 
-    assert provider.default_model == "openai-codex/gpt-5.4"
+    assert provider.default_model == "openai-codex/gpt-5.4-mini"
     assert provider.key_env is None
     assert provider.base_env == "OPENAI_CODEX_BASE_URL"
-    assert provider.suggested_models[0] == "openai-codex/gpt-5.4"
+    assert provider.suggested_models[0] == "openai-codex/gpt-5.4-mini"
 
 
 def test_legacy_cli_provider_choices_match_registry_defaults() -> None:
@@ -98,7 +98,7 @@ def test_interactive_onboard_suggests_current_primary_models() -> None:
     assert onboard_defaults["openrouter"] == "deepseek/deepseek-v4-pro"
     assert onboard_defaults["openai"] == "gpt-5.5"
     assert onboard_defaults["anthropic"] == "claude-sonnet-4-6"
-    assert onboard_defaults["openai-codex"] == "openai-codex/gpt-5.4"
+    assert onboard_defaults["openai-codex"] == "openai-codex/gpt-5.4-mini"
     assert onboard_defaults["deepseek"] == "deepseek-v4-pro"
     assert onboard_defaults["siliconflow-cn"] == "deepseek-ai/DeepSeek-V3.1-Terminus"
     assert onboard_defaults["siliconflow-global"] == "deepseek-ai/DeepSeek-V3.1-Terminus"
@@ -176,3 +176,19 @@ def test_credential_fallback_map_matches_provider_catalog() -> None:
         for item in json.loads(providers_path.read_text(encoding="utf-8"))
     }
     assert _provider_default_base_urls() == catalog
+
+
+def test_codex_default_avoids_chatgpt_account_rejection() -> None:
+    """The Codex default must not be plain gpt-5.4.
+
+    ``openai-codex`` authenticates only via ChatGPT OAuth, and the Codex
+    backend answers that model with HTTP 400 "The 'gpt-5.4' model is not
+    supported when using Codex with a ChatGPT account" — so shipping it as the
+    default made the provider fail on first use. gpt-5.4 stays in
+    ``suggested_models`` for accounts that can reach it.
+    """
+    provider = next(p for p in ONBOARD_PROVIDERS if p.key == "openai-codex")
+
+    assert provider.default_model != "openai-codex/gpt-5.4"
+    assert provider.default_model == "openai-codex/gpt-5.4-mini"
+    assert "openai-codex/gpt-5.4" in provider.suggested_models

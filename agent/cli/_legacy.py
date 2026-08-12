@@ -5170,7 +5170,9 @@ _PROVIDER_CHOICES: list[dict[str, str | None]] = [
         "key_env": None,
         "base_env": "OPENAI_CODEX_BASE_URL",
         "base_url": "https://chatgpt.com/backend-api/codex/responses",
-        "model": "openai-codex/gpt-5.4",
+        # -mini: the Codex backend rejects plain gpt-5.4 for ChatGPT-account
+        # OAuth, which is the only auth mode this provider supports.
+        "model": "openai-codex/gpt-5.4-mini",
         "key_prefix": None,
         "key_placeholder": None,
     },

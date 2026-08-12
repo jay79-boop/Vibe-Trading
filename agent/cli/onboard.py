@@ -71,10 +71,15 @@ PROVIDERS: Final[tuple[Provider, ...]] = (
              "claude-sonnet-4-6", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL",
              "https://api.anthropic.com", None,
              ("claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5")),
+    # Default is the -mini variant: the Codex backend rejects plain gpt-5.4 for
+    # ChatGPT-account OAuth with HTTP 400 "The 'gpt-5.4' model is not supported
+    # when using Codex with a ChatGPT account", and ChatGPT OAuth is the only
+    # auth mode this provider has. gpt-5.4 stays available for accounts that
+    # can reach it.
     Provider("openai-codex", "OpenAI Codex", "ChatGPT OAuth for Codex",
-             "openai-codex/gpt-5.4", None, "OPENAI_CODEX_BASE_URL",
+             "openai-codex/gpt-5.4-mini", None, "OPENAI_CODEX_BASE_URL",
              "https://chatgpt.com/backend-api/codex/responses", None,
-             ("openai-codex/gpt-5.4", "openai-codex/gpt-5.4-mini")),
+             ("openai-codex/gpt-5.4-mini", "openai-codex/gpt-5.4")),
     Provider("deepseek", "DeepSeek",
              "cheapest tier — good for batch backtest research",
              "deepseek-v4-pro", "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL",
